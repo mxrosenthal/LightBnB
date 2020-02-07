@@ -1,13 +1,8 @@
-const properties = require('./json/properties.json');
-const users = require('./json/users.json');
-const { Pool } = require('pg');
+const db = require('./index');
 
-const pool = new Pool({
-  user: 'vagrant',
-  password: '123',
-  host: 'localhost',
-  database: 'lightbnb'
-});
+const properties = require('../json/properties.json');
+const users = require('../json/users.json');
+// const { Pool } = require('pg');
 
 /**
  * Get a single user from the database given their email.
@@ -15,23 +10,13 @@ const pool = new Pool({
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithEmail = function(email) {
-  return pool
+  return db
     .query(`SELECT * FROM users WHERE email = $1;`, [email])
     .then(res => res.rows[0])
 
     .catch(error => {
       return null;
     });
-  // let user;
-  // for (const userId in users) {
-  //   user = users[userId];
-  //   if (user.email.toLowerCase() === email.toLowerCase()) {
-  //     break;
-  //   } else {
-  //     user = null;
-  //   }
-  // }
-  // return Promise.resolve(user);
 };
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -41,7 +26,7 @@ exports.getUserWithEmail = getUserWithEmail;
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithId = function(id) {
-  return pool
+  return db
     .query(`SELECT * FROM users WHERE id = $1;`, [id])
     .then(res => res.rows[0])
     .catch(error => {
@@ -56,7 +41,7 @@ exports.getUserWithId = getUserWithId;
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser = function(user) {
-  return pool
+  return db
     .query(
       `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *;`,
       [user.name, user.email, user.password]
@@ -76,7 +61,7 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return pool
+  return db
     .query(
       `SELECT reservations.*, properties.*, AVG(property_reviews.rating) AS average_rating
       FROM properties
@@ -162,7 +147,7 @@ const getAllProperties = function(options, limit = 10) {
   console.log('queryStr: ', queryStr);
   console.log('queryParams: ', queryParams);
 
-  return pool.query(queryStr, queryParams).then(res => res.rows);
+  return db.query(queryStr, queryParams).then(res => res.rows);
 };
 exports.getAllProperties = getAllProperties;
 
@@ -211,6 +196,6 @@ const addProperty = function(property) {
 
   // console.log('queryStr: ', queryStr);
   // console.log('queryParams:', queryParams);
-  return pool.query(queryStr, queryParams).then(res => res.rows);
+  return db.query(queryStr, queryParams).then(res => res.rows);
 };
 exports.addProperty = addProperty;
